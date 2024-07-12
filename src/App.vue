@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import {
-    openSocket,
-    IPBLPro_Division_Woman,
-    IPBLPro_Division,
-    RBLW,
-    RBL
+    useSocket,
 } from '@/services/socketIo'
 import appLeague from './components/app-league.vue'
 import appPanel from '@/components/league/app-panel.vue'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
-openSocket(import.meta.env.VITE_API_URL)
+const { openSocket, closeSocket } = useSocket(import.meta.env.VITE_API_URL)
+
+openSocket()
+
+onUnmounted(() => {
+    closeSocket();
+});
 
 interface Panel {
     colorsList: string[]
@@ -39,47 +41,39 @@ const colors火箭篮球联盟 = ref<Panel>({
     <div class="app-wrp">
         <app-league
             class="league"
-            :league="IPBLPro_Division"
             :name="'IPBL Pro Division'"
             :color-title="'#0094FF'"
-            @send-color-list="
-                (colorsList: any) => {
-                    colorsIPBL篮球专业组.colorsList = colorsList
-                }
-            "
+            @send-color-list="(colorsList: any) => {
+                colorsIPBL篮球专业组.colorsList = colorsList
+            }
+                "
         />
         <app-league
             class="league"
-            :league="RBL"
             :name="'Rocket Basketball League'"
             :color-title="'#FF5C00'"
-            @send-color-list="
-                (colorsList: any) => {
-                    colors火箭篮球联盟.colorsList = colorsList
-                }
-            "
+            @send-color-list="(colorsList: any) => {
+                colors火箭篮球联盟.colorsList = colorsList
+            }
+                "
         />
         <app-league
             class="league"
-            :league="IPBLPro_Division_Woman"
             :name="'IPBL Pro Division Women'"
             :color-title="'text-shadow: 0px 0px 1px #000;'"
-            @send-color-list="
-                (colorsList: any) => {
-                    colorsIPBL女子篮球专业组.colorsList = colorsList
-                }
-            "
+            @send-color-list="(colorsList: any) => {
+                colorsIPBL女子篮球专业组.colorsList = colorsList
+            }
+                "
         />
         <app-league
             class="league"
-            :league="RBLW"
             :name="'Rocket Basketball League Women'"
             :color-title="'#FF00C7'"
-            @send-color-list="
-                (colorsList: any) => {
-                    colors火箭女子篮球联盟.colorsList = colorsList
-                }
-            "
+            @send-color-list="(colorsList: any) => {
+                colors火箭女子篮球联盟.colorsList = colorsList
+            }
+                "
         />
 
         <div class="panel-wrp">
@@ -129,6 +123,7 @@ const colors火箭篮球联盟 = ref<Panel>({
     border-left: 1px solid #d0deea;
     border-bottom: 1px solid #d0deea;
 }
+
 .league:nth-child(3) {
     border-top: 1px solid #d0deea;
     border-right: 1px solid #d0deea;

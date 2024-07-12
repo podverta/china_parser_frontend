@@ -32,3 +32,10 @@ interface OpponentData {
     handicap_bet: string
     total_bet: string
 }
+
+export interface LeagueStorage {
+    [key: string]: {
+        value: League[];
+        maxLength: number;
+    };
+}
