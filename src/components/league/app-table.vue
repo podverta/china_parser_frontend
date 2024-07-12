@@ -10,7 +10,10 @@
             <div class="match-title--time">{{ time }}</div>
         </div>
         <div class="table-wrp">
-            <div class="table" v-show="!collapse">
+            <div
+                class="table"
+                v-show="!collapse"
+            >
                 <div class="table-row table-title">
                     <div class="table-row--item">Сайт</div>
                     <div class="table-row--item">{{ opponent0 }}</div>
@@ -49,7 +52,7 @@
                     >
                         {{ item?.content[idx]?.opponent_1?.total_bet || '-' }}
                     </div>
-                    <div class="table-row--item">
+                    <div class="table-row--item" style="font-size: 14px;">
                         {{ formatDateTime(item?.content[idx]?.server_time) }}
                     </div>
                 </div>
@@ -68,7 +71,7 @@
                                 class="table-row--item"
                                 :style="`background-color: ${color.color}`"
                             ></div>
-                            <div class="table-row--item">
+                            <div class="table-row--item" style="font-size: 14px;">
                                 {{ formatDateTime(color.time) }}
                             </div>
                         </div>
@@ -109,7 +112,7 @@ const getColor = (
     time: string = '',
     isSetColorHistory = false
 ): string | undefined => {
-    if (item === undefined) return
+    if (!item) return
     if (item <= 1.59) {
         isSetColorHistory ? setColorHistory({ type: type, color: '#9E00FF', time: time }) : ''
         return '#9E00FF'
@@ -153,15 +156,16 @@ const findAndEmitColor = (newVal: any[], idx: number) => {
 watch(match, (newVal) => findAndEmitColor(newVal, idx))
 
 const formatDateTime = (input: string): string => {
-    if (!input) return '-'
     const date = new Date(input.replace(' ', 'T'))
     let hours = date.getHours()
     const minutes = date.getMinutes().toString().padStart(2, '0')
+    const seconds = date.getSeconds().toString().padStart(2, '0')
 
     hours = hours % 12 || 12 // Преобразование "0" в "12" для 12-часового формата
 
-    return `${hours}:${minutes}`
+    return `${hours}:${minutes}:${seconds}`
 }
+
 
 const emit = defineEmits(['sendColor'])
 </script>
@@ -212,6 +216,7 @@ const emit = defineEmits(['sendColor'])
     display: grid;
     grid-template-columns: 2fr repeat(4, 1fr) 1fr;
 }
+
 .table-row:not(:last-of-type) {
     border-bottom: 1px solid #1f2b3e;
 }
