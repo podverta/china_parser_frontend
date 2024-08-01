@@ -3,17 +3,26 @@
         <div class="panel-part">
             <div
                 class="panel-part--coef-color"
-                v-for="(color, idx) in colors.colorsList"
+                v-for="(color, idx) in colorHistory.colorPanel"
                 :key="'color' + idx"
                 :style="`background-color: ${color}`"
             ></div>
         </div>
-        <div class="panel-part--league" :style="colors.color"></div>
+        <div
+            class="panel-part--league"
+            :style="colorHistory.color"
+        ></div>
     </div>
 </template>
 
 <script setup lang="ts">
-const { colors } = defineProps(['colors'])
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+const { name } = defineProps(['name'])
+
+const colorHistory = computed(() => store.getters['historyColor/getColorHistory'](name))
 </script>
 
 <style scoped>

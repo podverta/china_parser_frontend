@@ -12,7 +12,7 @@
         <div class="table-wrp">
             <div
                 class="table"
-                v-show="!collapse"
+                v-if="!collapse"
             >
                 <div class="table-row table-title">
                     <div class="table-row--item">Сайт</div>
@@ -20,58 +20,38 @@
                     <div class="table-row--item">{{ opponent1 }}</div>
                     <div class="table-row--item">Время</div>
                 </div>
-                <div
-                    class="table-row"
-                    :class="{ gray: item?.site === 'fb.com' }"
-                    :style="`background-color: ${item?.site === 'fb.com' ? '#D0DEEA' : '#fff'};`"
-                    v-for="item in match"
-                    :key="'item' + item"
+                <template
+                    v-for="(item, index) in match"
+                    :key="'item' + index"
                 >
-                    <div class="table-row--item">{{ item?.site }}</div>
-                    <div
-                        class="table-row--item"
-                        :style="`background-color: ${getColor(item?.content[idx]?.opponent_0?.handicap_bet, 'Гандикап', item?.content[idx]?.server_time, true)}`"
-                    >
-                        {{ item?.content[idx]?.opponent_0?.handicap_bet || '-' }}
-                    </div>
-                    <div
-                        class="table-row--item"
-                        :style="`background-color: ${getColor(item?.content[idx]?.opponent_1?.handicap_bet, 'Гандикап', item?.content[idx]?.server_time, true)}`"
-                    >
-                        {{ item?.content[idx]?.opponent_1?.handicap_bet || '-' }}
-                    </div>
-                    <div
-                        class="table-row--item"
-                        :style="`background-color: ${getColor(item?.content[idx]?.opponent_0?.total_bet, 'O/U', item?.content[idx]?.server_time, true)}`"
-                    >
-                        {{ item?.content[idx]?.opponent_0?.total_bet || '-' }}
-                    </div>
-                    <div
-                        class="table-row--item"
-                        :style="`background-color: ${getColor(item?.content[idx]?.opponent_1?.total_bet, 'O/U', item?.content[idx]?.server_time, true)}`"
-                    >
-                        {{ item?.content[idx]?.opponent_1?.total_bet || '-' }}
-                    </div>
-                    <div class="table-row--item" style="font-size: 14px;">
-                        {{ formatDateTime(item?.content[idx]?.server_time) }}
-                    </div>
-                </div>
+                    <app-row
+                        v-if="item"
+                        :match-idx="idx"
+                        :item="item"
+                        :index="index"
+                        :name="name"
+                    ></app-row>
+                </template>
+
             </div>
 
-            <div v-show="collapse">
-                <template v-if="colorHistory.length">
+            <div v-else>
+                <template v-if="matchColorHistory?.length">
                     <div class="table">
                         <div
                             class="table-row--collapse"
-                            v-for="(color, idx) in colorHistory"
+                            v-for="(color, idx) in matchColorHistory"
                             :key="'color' + idx"
                         >
                             <div class="table-row--item">{{ color.type }}</div>
                             <div
                                 class="table-row--item"
-                                :style="`background-color: ${color.color}`"
+                                :style="{ backgroundColor: color.color }"
                             ></div>
-                            <div class="table-row--item" style="font-size: 14px;">
+                            <div
+                                class="table-row--item"
+                                style="font-size: 14px;"
+                            >
                                 {{ formatDateTime(color.time) }}
                             </div>
                         </div>
@@ -86,77 +66,29 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from 'vue'
+import appRow from '@/components/table/app-row.vue'
+import { useStore } from 'vuex';
+import { computed } from 'vue'
 
-const { match, opponent0, opponent1, score, idx, time, collapse } = defineProps([
+const store = useStore()
+
+
+const { match, opponent0, opponent1, score, idx, time, name, collapse } = defineProps([
     'match',
     'opponent0',
     'opponent1',
     'score',
     'idx',
     'time',
-    'collapse'
+    'collapse', 'name'
 ])
 
-interface ColorHistory {
-    type: string
-    color: string
-    time: string
-}
-
-const colorHistory = ref<ColorHistory[]>([])
-
-const getColor = (
-    item: number | undefined,
-    type: string = '',
-    time: string = '',
-    isSetColorHistory = false
-): string | undefined => {
-    if (!item) return
-    if (item <= 1.59) {
-        isSetColorHistory ? setColorHistory({ type: type, color: '#9E00FF', time: time }) : ''
-        return '#9E00FF'
-    }
-    if (item <= 1.63) {
-        isSetColorHistory ? setColorHistory({ type: type, color: '#FF0000', time: time }) : ''
-        return '#FF0000'
-    }
-    if (item <= 1.68) {
-        isSetColorHistory ? setColorHistory({ type: type, color: '#FF8A00', time: time }) : ''
-        return '#FF8A00'
-    }
-    if (item <= 1.73) {
-        isSetColorHistory ? setColorHistory({ type: type, color: '#FAFF00', time: time }) : ''
-        return '#FAFF00'
-    }
-    return
-}
-
-const setColorHistory = (item: ColorHistory) => {
-    colorHistory.value.unshift(item)
-    if (colorHistory.value.length > 10) colorHistory.value.pop()
-}
-
-const findAndEmitColor = (newVal: any[], idx: number) => {
-    const bets = [
-        newVal[0].content[idx].opponent_0?.total_bet,
-        newVal[0].content[idx].opponent_0?.handicap_bet,
-        newVal[0].content[idx].opponent_1?.total_bet,
-        newVal[0].content[idx].opponent_1?.handicap_bet
-    ]
-
-    bets.forEach((bet) => {
-        const color = getColor(bet)
-        if (color) {
-            emit('sendColor', color)
-        }
-    })
-}
-
-watch(match, (newVal) => findAndEmitColor(newVal, idx))
+const matchColorHistory = computed(() => {
+    return store.getters['matchColorHistory/getColorHistory'](name, `key-${idx}`)
+})
 
 const formatDateTime = (input: string): string => {
-    const date = new Date(input.replace(' ', 'T'))
+    const date = new Date(input)
     let hours = date.getHours()
     const minutes = date.getMinutes().toString().padStart(2, '0')
     const seconds = date.getSeconds().toString().padStart(2, '0')
@@ -165,10 +97,8 @@ const formatDateTime = (input: string): string => {
 
     return `${hours}:${minutes}:${seconds}`
 }
-
-
-const emit = defineEmits(['sendColor'])
 </script>
+
 
 <style scoped>
 .match-title {
@@ -197,7 +127,7 @@ const emit = defineEmits(['sendColor'])
 }
 
 .table-wrp {
-    max-height: 292px;
+    max-height: 78%;
     height: 100%;
     overflow-y: auto;
     padding-right: 2px;

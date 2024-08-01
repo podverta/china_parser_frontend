@@ -1,13 +1,36 @@
 import { io, Socket } from 'socket.io-client';
 import { type LeagueData, type LeagueStorage } from '@/interfaces';
-import { reactive, ref, onUnmounted, nextTick, watch } from 'vue';
+import { reactive, ref } from 'vue';
+import { store} from '@/store';
 
 export const leagueStorage: LeagueStorage = reactive({
-    'IPBL Pro Division': { value: [], maxLength: 10 },
-    'IPBL Pro Division Women': { value: [], maxLength: 10 },
-    'Rocket Basketball League Women': { value: [], maxLength: 10 },
-    'Rocket Basketball League': { value: [], maxLength: 10 },
+    'IPBL Pro Division': { value: [], maxLength: 100 },
+    'IPBL Pro Division Women': { value: [], maxLength: 100 },
+    'Rocket Basketball League Women': { value: [], maxLength: 100 },
+    'Rocket Basketball League': { value: [], maxLength: 100 },
 });
+
+const getColor = (
+    item: string | undefined,
+): string | undefined => {
+    if (!item) return
+    const itemBuff = +item
+    if (itemBuff <= 1.73 && itemBuff >= 1.69) {
+        return '#FAFF00'; // Желтый
+    }
+    else if (itemBuff <= 1.68 && itemBuff >= 1.64) {
+        return '#FF8A00'; // Оранжевый
+    }
+    else if (itemBuff <= 1.63 && itemBuff > 1.59) {
+        return '#FF0000'; // Красный
+    }
+    else if (itemBuff <= 1.59) {
+        return '#9E00FF'; // Фиолетовый
+    } else {
+        return
+    }
+}
+
 
 const addToLeague = (name: string, data: LeagueData[], site: string) => {
     try {
@@ -16,24 +39,70 @@ const addToLeague = (name: string, data: LeagueData[], site: string) => {
             throw new Error(`${name} не является массивом`);
         }
 
-        nextTick(() => {
-            league.value.unshift({ content: data, site });
-
-            if (league.value.length > league.maxLength) {
-                league.value.pop();
+        const test = ref(league.value.slice());
+        const newEntry = { content: data, site };
+        
+        newEntry.content.forEach((match, idx) => {
+            for (const key in match) {
+                if (key === 'opponent_0' || key === 'opponent_1') {
+                    for (const oppenent_key in match[key]) {
+                        let color: string | undefined = '';
+                        let type = '';
+        
+                        if (oppenent_key === 'handicap_bet') {
+                            type = 'Гандикап';
+                            color = getColor(match[key][oppenent_key]);
+                        } else if (oppenent_key === 'total_bet') {
+                            type = 'O/U';
+                            color = getColor(match[key][oppenent_key]);
+                        }
+        
+                        if (color) {
+                            store.dispatch('historyColor/setColorHistory', {
+                                name,
+                                color
+                              });                         
+                            if (type) {
+                                store.dispatch('matchColorHistory/setMatchColorHistory', {
+                                    league: name,
+                                    key: `key-${idx}`,
+                                    item: {
+                                      time: match.server_time,
+                                      color,
+                                      type
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
             }
         });
+
+        if (!league.value.some(item => item.content === data && item.site === site)) {
+            league.value = [newEntry, ...test.value];
+        }
+
+        if (league.value.length > league.maxLength) {
+            league.value.length = league.maxLength;
+        }
+      
     } catch (error) {
         console.error(`Ошибка при обновлении ${name}:`, error);
     }
 };
+
+
 
 export const useSocket = (URL: string) => {
     const socket = ref<Socket | null>(null);
 
     const openSocket = () => {
         socket.value = io(URL, {
-            transports: ['websocket', 'polling', 'flashsocket'],
+            transports: ['websocket', 'polling', 'flashsocket'], 
+            auth: {
+                socket_key: '1951a1a5-e017-4299-be60-022e52a0d099',
+              }
         });
 
         socket.value.on('connect', () => {
@@ -44,17 +113,17 @@ export const useSocket = (URL: string) => {
             console.log('Соединение разорвано');
         });
 
-        socket.value.on('message', (data: string) => {
+        socket.value.on('message', (data: string) => {       
             try {
                 if (data) {
                     const parsedData = JSON.parse(data);
                     parsedData['akty.com'] ? processLeagueData(parsedData, 'akty.com') : processLeagueData(parsedData, 'fb.com');
+                    
                 }
             } catch (error) {
                 console.error('Ошибка при обработке сообщения сокета:', error);
             }
-        });
-
+        })
         socket.value.on('error', (error: any) => {
             console.error('Ошибка сокета:', error);
         });
@@ -84,12 +153,3 @@ const processLeagueData = (data: any, site: string) => {
         console.error('Ошибка при обработке данных лиги:', error);
     }
 };
-
-// Пример использования watch для отслеживания изменений
-watch(
-    () => leagueStorage,
-    (newVal, oldVal) => {
-        console.log('Данные лиги обновлены:', newVal);
-    },
-    { deep: true }
-);
