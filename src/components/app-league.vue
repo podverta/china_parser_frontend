@@ -18,18 +18,15 @@
             </div>
         </div>
         <div class="league-matchs">
-            <template v-if="state.league.length > 0 && state.league[0]?.content">
+            <template v-if="leagueStorage[name].value">
                 <app-table
-                    v-for="(match, idx) in state.league[0].content"
+                    v-for="(match, key, idx) in leagueStorage[name].value"
                     :key="'match' + idx"
+                    :name="name"
                     :collapse="state.collapse"
-                    :score="match.opponent_0.score + ' - ' + match.opponent_1.score"
-                    :time="match.process_time"
                     :idx="idx"
-                    :opponent0="match.opponent_0.name"
-                    :opponent1="match.opponent_1.name"
-                    @send-color="sendColor"
-                    :match="state.league"
+                    :opponents="key"
+                    :match="match"
                     class="league-matchs--match"
                 />
             </template>
@@ -43,47 +40,15 @@
 <script setup lang="ts">
 import appTable from '@/components/league/app-table.vue'
 import iconArrow from '@/components/icons/iconArrow.vue'
-import { reactive, ref } from 'vue';
-import type { League, LeagueStorage } from '@/interfaces';
-const { name, colorTitle } = defineProps(['name', 'colorTitle'])
+import { reactive } from 'vue';
+import type { League } from '@/interfaces';
 import { leagueStorage } from '@/services/socketIo';
-
-const colorList = ref<string[]>(['#fff', '#fff', '#fff', '#fff', '#fff'])
-const emit = defineEmits(['sendColorList'])
+const { name, colorTitle } = defineProps(['name', 'colorTitle'])
 
 const state = reactive({
     collapse: false,
     league: [] as League[],
 });
-
-const sendColor = (color: string) => {
-    colorList.value?.unshift(color)
-    colorList.value?.length > 5 ? colorList.value.pop() : ''
-    emit('sendColorList', colorList.value)
-}
-
-const leagueMapping: Record<string, keyof LeagueStorage> = {
-    'IPBL Pro Division Women': 'IPBL Pro Division Women',
-    'IPBL Pro Division': 'IPBL Pro Division',
-    'Rocket Basketball League Women': 'Rocket Basketball League Women',
-    'Rocket Basketball League': 'Rocket Basketball League',
-};
-
-// Функция для загрузки переменной
-const loadVariable = async (name: string) => {
-    try {
-        const variableName = leagueMapping[name];
-        if (variableName) {
-            state.league = leagueStorage[variableName].value;
-        } else {
-            console.error('Unknown league name:', name);
-        }
-    } catch (error) {
-        console.error('Error loading variable:', error);
-    }
-};
-
-loadVariable(name)
 </script>
 
 <style scoped>
@@ -130,7 +95,7 @@ loadVariable(name)
 .league-matchs {
     display: flex;
     grid-gap: 16px;
-    height: 100%;
+    height: 93%;
 }
 
 .arrow-icon {

@@ -15,6 +15,8 @@ export interface SportsData {
 }
 
 export interface LeagueData {
+    changed: boolean
+    score_game: string
     opponent_0: OpponentData
     opponent_1: OpponentData
     process_time: string
@@ -23,7 +25,7 @@ export interface LeagueData {
 
 export interface League {
     site: string
-    content: LeagueData[]
+    content: LeagueData
 }
 
 interface OpponentData {
@@ -35,7 +37,7 @@ interface OpponentData {
 
 export interface LeagueStorage {
     [key: string]: {
-        value: League[];
-        maxLength: number;
+      value: { [key: string]: League[] };
+      maxLength: number;
     };
-}
+  }
