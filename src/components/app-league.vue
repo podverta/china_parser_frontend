@@ -2,7 +2,7 @@
     <div class="league">
         <div
             class="league-title"
-            :style="colorTitle.includes('text-shadow') ? colorTitle : `color:${colorTitle}`"
+            :style="`color:${colorTitle}`"
         >
             {{ name }}
             <div
@@ -13,12 +13,12 @@
                     class="arrow-icon"
                     style="pointer-events: none"
                     @click="state.collapse = !state.collapse"
-                    :style="`transform: rotate(${state.collapse ? '180deg' : '0deg'})`"
+                    :style="`transform: rotate(${state.collapse ? '720deg' : '0deg'})`"
                 />
             </div>
         </div>
         <div class="league-matchs">
-            <template v-if="leagueStorage[name].value">
+            <template v-if="Object.keys(leagueStorage[name].value).length">
                 <app-table
                     v-for="(match, key, idx) in leagueStorage[name].value"
                     :key="'match' + idx"
@@ -95,16 +95,17 @@ const state = reactive({
 .league-matchs {
     display: flex;
     grid-gap: 16px;
-    height: 93%;
+    height: calc(100% - 28px);
 }
 
 .arrow-icon {
-    transition: 0.3s;
+    transition: 0.5s;
 }
 
 .league-matchs--match {
     max-width: 100%;
     width: 100%;
+    flex: 1 1 auto;
 
 }
 </style>

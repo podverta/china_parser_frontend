@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { type LeagueData, type LeagueStorage } from '@/interfaces';
+import { type LeagueData, type LeagueStorage, type RateData } from '@/interfaces';
 import { reactive, ref } from 'vue';
 import { store} from '@/store';
 
@@ -31,72 +31,42 @@ const getColor = (
     }
 }
 
+const addToHistory = (rate: RateData, name: string, matchKey:string,  )=>{
+    for (const key in rate) {
+        if(key === 'server_time' || key === 'total_point' || key === 'handicap_point_0' || key === 'handicap_point_1') continue
+        if (Object.prototype.hasOwnProperty.call(rate, key)) {
+            const element = rate[key];
+            const color = element ? getColor(element) : ''
+            if(color){
+                store.dispatch('matchColorHistory/setMatchColorHistory', {
+                    league: name,
+                    key: matchKey,
+                    color
+                });
+            }
+        }
+    }
+}
 
 const addToLeague = (name: string, data: LeagueData[], site: string) => {
     try {
         const league = leagueStorage[name];
-        // if (!Array.isArray(league.value)) {
-        //     throw new Error(`${name} не является массивом`);
-        // }
 
-        data.forEach((match, idx)=>{
+        data.forEach((match)=>{
+            console.log(match.changed);
             if(match.changed){
-                const newEntry = { content: match, site };  
+                const newEntry = { content: match, site };
                 const matchKey = `${match.opponent_0}-${match.opponent_1}`;
                 const test = ref(league?.value[matchKey] ? league?.value[matchKey]: []);
                 league.value[matchKey] = [newEntry, ...test.value];
-                
+
                 if (league.value[matchKey].length > league.maxLength) {
                     league.value[matchKey].length = league.maxLength;
                 }
+
+                addToHistory(match.rate, name, matchKey, )
             }
         })
-        
-        // newEntry.content.forEach((match, idx) => {
-
-            // for (const key in match) {
-                // if (key === 'opponent_0' || key === 'opponent_1') {
-                //     for (const oppenent_key in match[key]) {
-                //         let color: string | undefined = '';
-                //         let type = '';
-        
-                //         if (oppenent_key === 'handicap_bet') {
-                //             type = 'Гандикап';
-                //             color = getColor(match[key][oppenent_key]);
-                //         } else if (oppenent_key === 'total_bet') {
-                //             type = 'O/U';
-                //             color = getColor(match[key][oppenent_key]);
-                //         }
-        
-                //         if (color) {
-                //             store.dispatch('historyColor/setColorHistory', {
-                //                 name,
-                //                 color
-                //               });                         
-                //             if (type) {
-                //                 store.dispatch('matchColorHistory/setMatchColorHistory', {
-                //                     league: name,
-                //                     key: `key-${idx}`,
-                //                     item: {
-                //                       time: match.server_time,
-                //                       color,
-                //                       type
-                //                     }
-                //                 });
-                //             }
-                //         }
-                //     }
-                // }
-            // }
-        // });
-
-        // if (!league.value.some(item => item.content === data && item.site === site)) {
-        //     league.value = [newEntry, ...test.value];
-        // }
-
-        // if (league.value.length > league.maxLength) {
-        //     league.value.length = league.maxLength;
-        // }
       
     } catch (error) {
         console.error(`Ошибка при обновлении ${name}:`, error);

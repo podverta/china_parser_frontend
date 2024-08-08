@@ -5,61 +5,54 @@
                 {{ opponents }}
             </div>
             <div class="match-title--score">
-                {{ score }}
+                {{ match[0].content.score_game }}
             </div>
-            <div class="match-title--time">{{ time }}</div>
+            <div class="match-title--counter">
+                <div
+                    class="count"
+                    v-for="(color, idx) in colors"
+                    :key="'color' + idx"
+                >
+                    <div :style="'background-color: ' + color"></div>
+                    {{ getColorHistory(name, opponents, color) }}
+                </div>
+            </div>
         </div>
         <div class="table-wrp">
             <div
                 class="table"
                 v-if="!collapse"
             >
-                <!-- <div class="table-row table-title">
-                    <div class="table-row--item">Сайт</div>
-                    <div class="table-row--item">{{ opponent0 }}</div>
-                    <div class="table-row--item">{{ opponent1 }}</div>
-                    <div class="table-row--item">Время</div>
-                </div> -->
                 <template
                     v-for="(item, index) in match"
                     :key="'item' + index"
                 >
-                    <!-- <app-row
+                    <app-row
                         v-if="item"
-                        :match-idx="idx"
                         :item="item"
-                        :index="index"
                         :name="name"
-                    ></app-row> -->
+                    ></app-row>
                 </template>
 
             </div>
-
             <div v-else>
-                <template v-if="matchColorHistory?.length">
-                    <div class="table">
+                <div class="table">
+                    <div
+                        class="table-row--collapse"
+                        v-for="(color, idx) in 3"
+                        :key="'color' + idx"
+                    >
+                        <div class="table-row--item"></div>
+                        <div class="table-row--item"></div>
+                        <!-- :style="{ backgroundColor: color.color }" -->
                         <div
-                            class="table-row--collapse"
-                            v-for="(color, idx) in matchColorHistory"
-                            :key="'color' + idx"
+                            class="table-row--item"
+                            style="font-size: 14px;"
                         >
-                            <div class="table-row--item">{{ color.type }}</div>
-                            <div
-                                class="table-row--item"
-                                :style="{ backgroundColor: color.color }"
-                            ></div>
-                            <div
-                                class="table-row--item"
-                                style="font-size: 14px;"
-                            >
-                                {{ formatDateTime(color.time) }}
-                            </div>
+                            <!-- {{ time }} -->
                         </div>
                     </div>
-                </template>
-                <template v-else>
-                    <div class="error">Нет событий</div>
-                </template>
+                </div>
             </div>
         </div>
     </div>
@@ -67,35 +60,21 @@
 
 <script setup lang="ts">
 import appRow from '@/components/table/app-row.vue'
-import { useStore } from 'vuex';
+import { useStore } from 'vuex'
 import { computed } from 'vue'
+const { match, opponents, name, collapse } = defineProps([
+    'match',
+    'opponents', 'collapse',
+    'name'
+])
+
+const colors = ['#FAFF00', '#FF8A00', '#FF0000', '#9E00FF']
 
 const store = useStore()
 
-
-const { match, opponents, score, idx, time, name, collapse } = defineProps([
-    'match',
-    'opponents',
-    'score',
-    'idx',
-    'time',
-    'collapse', 'name'
-])
-
-const matchColorHistory = computed(() => {
-    return store.getters['matchColorHistory/getColorHistory'](name, `key-${idx}`)
-})
-
-const formatDateTime = (input: string): string => {
-    const date = new Date(input)
-    let hours = date.getHours()
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    const seconds = date.getSeconds().toString().padStart(2, '0')
-
-    hours = hours % 12 || 12 // Преобразование "0" в "12" для 12-часового формата
-
-    return `${hours}:${minutes}:${seconds}`
-}
+const getColorHistory = (league: string, key: string, color: string) => {
+    return computed(() => store.getters['matchColorHistory/getColorHistory'](league, key, color));
+};
 </script>
 
 
@@ -121,8 +100,29 @@ const formatDateTime = (input: string): string => {
     justify-self: center;
 }
 
-.match-title--time {
+.match-title--counter {
+    display: flex;
+    align-items: center;
+    grid-gap: 4px;
     justify-self: flex-end;
+}
+
+.match-title--counter .count {
+    display: flex;
+    align-items: center;
+    grid-gap: 4px;
+    border-radius: 3px;
+    padding: 2px 4px;
+    background: var(--LightBlack, #1F2B3E);
+    color: var(--LightBlue, #D0DEEA);
+
+
+}
+
+.match-title--counter .count div {
+    width: 16px;
+    height: 14px;
+    border-radius: 7px;
 }
 
 .table-wrp {
@@ -147,7 +147,7 @@ const formatDateTime = (input: string): string => {
     color: var(--LightBlue, #d0deea);
     text-align: center;
     font-family: Ubuntu;
-    font-size: 14px;
+    font-size: 12px;
     font-style: normal;
     font-weight: 700;
     line-height: normal;

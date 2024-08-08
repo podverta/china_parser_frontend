@@ -1,12 +1,10 @@
 import { type Module } from 'vuex';
 
 interface MatchColorHistoryItem {
-  type: string;
-  color: string;
-  time: string;
+  [key:string]: number
 }
 
-type LeagueColorHistory = Record<string, MatchColorHistoryItem[]>;
+type LeagueColorHistory = Record<string, MatchColorHistoryItem>;
 
 type MatchColorHistory = Record<string, LeagueColorHistory>;
 
@@ -18,17 +16,17 @@ const state = (): MatchColorHistory => ({
 });
 
 const mutations = {
-  setMatchColorHistory(state: MatchColorHistory, { league, key, item }: { league: string, key: string, item: MatchColorHistoryItem }) {
+  setMatchColorHistory(state: MatchColorHistory, { league, key, color }: { league: string, key: string, color: string}) {
     if (!state[league]) {
       state[league] = {};
     }
     if (!state[league][key]) {
-      state[league][key] = [];
+      state[league][key] = {};
     }
-    state[league][key] = [item, ...state[league][key]];
-    if (state[league][key].length > 50) {
-      state[league][key] = state[league][key].slice(0, 50);
+    if(!state[league][key][color]){
+      state[league][key][color] = 0
     }
+    state[league][key][color] = ++state[league][key][color]
   },
 }
 
@@ -39,7 +37,12 @@ const actions = {
 }
 
 const getters = {
-  getColorHistory: (state: MatchColorHistory) => (league: string, key: string) => state[league][key],
+  getColorHistory: (state: MatchColorHistory) => (league: string, key: string, color: string) => {
+    if(!state[league][key] || !state[league][key][color]) {
+      return 0
+    } 
+    return state[league][key][color]
+  }
 }
 
 const matchColorHistoryModule: Module<MatchColorHistory, any> = {

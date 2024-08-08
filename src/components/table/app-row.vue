@@ -1,52 +1,48 @@
-<template v-if="item?.content[matchIdx]?.changed">
+<template v-if="item?">
 	<div
 		class="table-row"
 		:class="{ gray: item?.site === 'fb.com' }"
 	>
-
-		<div class="table-row--item">{{ item?.content[matchIdx]?.time_game || '-' }}</div>
-		<div class="table-row--item gray">{{ item?.content[matchIdx]?.rate.total_point || '-' }}</div>
+		<div class="table-row--item">{{ item?.content?.time_game || '-' }}</div>
+		<div class="table-row--item gray">{{ item?.content?.rate.total_point || '-' }}</div>
 		<div
 			class="table-row--item"
-			:style="`background: ${getColor(item?.content[matchIdx]?.rate?.total_bet_0)}`"
+			:style="`background: ${getColor(item?.content?.rate?.total_bet_0)}`"
 		>
-			{{ item?.content[matchIdx]?.rate?.total_bet_0 || '-' }}
+			{{ item?.content?.rate?.total_bet_0 || '-' }}
 		</div>
 		<div
 			class="table-row--item"
-			:style="`background: ${getColor(item?.content[matchIdx]?.rate?.total_bet_1)}`"
+			:style="`background: ${getColor(item?.content?.rate?.total_bet_1)}`"
 		>
-			{{ item?.content[matchIdx]?.rate?.total_bet_1 || '-' }}
+			{{ item?.content?.rate?.total_bet_1 || '-' }}
 		</div>
 		<div class="table-row--item gray">
-			{{ item?.content[matchIdx]?.rate?.handicap_point_0 || '-' }}
+			{{ item?.content?.rate?.handicap_point_0 || '-' }}
 		</div>
 		<div
 			class="table-row--item"
-			:style="`background: ${getColor(item?.content[matchIdx]?.rate?.handicap_bet_0)}`"
+			:style="`background: ${getColor(item?.content?.rate?.handicap_bet_0)}`"
 		>
-			{{ item?.content[matchIdx]?.rate?.handicap_bet_0 || '-' }}
+			{{ item?.content?.rate?.handicap_bet_0 || '-' }}
 		</div>
 		<div class="table-row--item gray">
-			{{ item?.content[matchIdx]?.rate?.handicap_point_1 || '-' }}
+			{{ item?.content?.rate?.handicap_point_1 || '-' }}
 		</div>
 		<div
 			class="table-row--item"
-			:style="`background: ${getColor(item?.content[matchIdx]?.rate?.handicap_bet_1)}`"
+			:style="`background: ${getColor(item?.content?.rate?.handicap_bet_1)}`"
 		>
-			{{ item?.content[matchIdx]?.rate?.handicap_bet_1 || '-' }}
+			{{ item?.content?.rate?.handicap_bet_1 || '-' }}
 		</div>
-		<div
-			class="table-row--item"
-			style="font-size: 14px;"
-		>
-			{{ item?.content[matchIdx]?.server_time ? item?.content[matchIdx]?.server_time : '-' }}
+		<div class="table-row--item">
+			{{ item?.content?.server_time ? item?.content?.server_time : '-' }}
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-const { matchIdx, item } = defineProps(['matchIdx', 'item', 'name', 'updated'])
+const { item } = defineProps(['item'])
 
 const getColor = (
 	item: string | undefined,
@@ -75,6 +71,11 @@ const getColor = (
 .table-row {
 	display: grid;
 	grid-template-columns: 2fr repeat(7, 1fr) 1fr;
+	font-family: Ubuntu;
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: normal;
 }
 
 .table-row.gray {

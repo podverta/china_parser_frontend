@@ -16,7 +16,7 @@ const leagues = ['IPBL Pro Division', 'Rocket Basketball League', 'IPBL Pro Divi
 onUnmounted(() => {
     closeSocket();
 });
-        openSocket()
+openSocket()
 
 // const logIn = () => {
 //     if (login.value === import.meta.env.VITE_APP_LOGIN && password.value === import.meta.env.VITE_APP_PASSWORD) {
@@ -49,7 +49,12 @@ onUnmounted(() => {
         </div>
     </template> -->
     <!-- <template v-else> -->
-
+    <div class="up-panel--wrp">
+        <div class="up-panel">
+            <p>FB -<span class="blue">Синий</span> </p>
+            <p>OB - <span class="white">Белый</span> </p>
+        </div>
+    </div>
     <div class="app-wrp">
         <app-league
             class="league"
@@ -64,7 +69,7 @@ onUnmounted(() => {
         <app-league
             class="league"
             :name="'IPBL Pro Division Women'"
-            :color-title="'text-shadow: 0px 0px 1px #000;'"
+            :color-title="'#FF3D3D'"
         />
         <app-league
             class="league"
@@ -81,8 +86,51 @@ onUnmounted(() => {
     grid-template-columns: repeat(2, 1fr);
     width: 100%;
     height: 100%;
-    position: relative;
-    overflow-x: auto;
+}
+
+.up-panel--wrp {
+    width: calc(100% - 36px);
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    margin: 0 18px;
+    background: linear-gradient(90deg, #D0DEEA 0%, #1F2B3E 40%, #1F2B3E 60%, #D0DEEA 100%);
+    margin-top: 20px;
+}
+
+.up-panel {
+    display: flex;
+    align-items: center;
+    grid-gap: 24px;
+}
+
+.up-panel p {
+    color: #D0DEEA;
+    font-family: Ubuntu;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.up-panel p .blue {
+    color: #0094FF;
+    font-family: Ubuntu;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.up-panel p .white {
+    color: #FFF;
+    font-family: Ubuntu;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
 }
 
 .league {
@@ -90,9 +138,9 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     grid-gap: 14px;
-    height: 50vh;
+    height: calc(50vh - 29px);
     justify-self: center;
-    padding: 33px 14px 33px 18px;
+    padding: 20px 14px;
 }
 
 .league:first-of-type {
@@ -139,12 +187,6 @@ onUnmounted(() => {
     display: flex;
     transform: translateY(-50%);
     cursor: pointer;
-}
-
-.league-matchs {
-    display: flex;
-    grid-gap: 16px;
-    height: 100%;
 }
 
 .authorization-wrp {

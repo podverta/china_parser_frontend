@@ -14,13 +14,27 @@ export interface SportsData {
     }
 }
 
+export interface RateData {
+    total_point: string;
+    total_bet_0: string;
+    total_bet_1: string;
+    handicap_point_0: string;
+    handicap_bet_0: string;
+    handicap_point_1: string;
+    handicap_bet_1: string;
+    server_time: string;
+    [key: string]: string;
+}
+
+
 export interface LeagueData {
-    changed: boolean
-    score_game: string
-    opponent_0: OpponentData
-    opponent_1: OpponentData
-    process_time: string
-    server_time: string
+    changed: boolean;
+    opponent_0: string;
+    opponent_1: string;
+    score_game: string;
+    time_game: string;
+    rate: RateData;
+    server_time: string;
 }
 
 export interface League {
