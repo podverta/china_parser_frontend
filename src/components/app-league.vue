@@ -25,7 +25,7 @@
                     :name="name"
                     :collapse="state.collapse"
                     :idx="idx"
-                    :opponents="key"
+                    :opponents="key as string"
                     :match="match"
                     class="league-matchs--match"
                 />

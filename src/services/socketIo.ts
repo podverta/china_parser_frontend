@@ -10,7 +10,7 @@ export const leagueStorage: LeagueStorage = reactive({
     'Rocket Basketball League': { value: {}, maxLength: 100 },
 });
 
-const getColor = (
+export const getColor = (
     item: string | undefined,
 ): string | undefined => {
     if (!item) return
@@ -48,26 +48,46 @@ const addToHistory = (rate: RateData, name: string, matchKey:string,  )=>{
     }
 }
 
+const isMatchEnd = (data: LeagueData)=>{
+    const { rate, time_game } = data;
+
+    for (const key in rate) {
+      if (key !== 'server_time' && rate[key] !== '') {
+        return false; 
+      }
+    }
+  
+    return time_game.includes('IV 00');
+}
+
 const addToLeague = (name: string, data: LeagueData[], site: string) => {
     try {
         const league = leagueStorage[name];
 
-        data.forEach((match)=>{
-            console.log(match.changed);
-            if(match.changed){
+        data.forEach((match)=>{   
+            const matchKey = `${match.opponent_0}-${match.opponent_1}`;
+            if(isMatchEnd(match)){
+                if(league.value[matchKey]){
+                    console.log('end');
+                    delete league.value[matchKey];
+                    store.dispatch('matchColorHistory/removeMatchColorHistory', {
+                        league: name,
+                        key: matchKey,
+                      });
+                }
+            } else{
                 const newEntry = { content: match, site };
-                const matchKey = `${match.opponent_0}-${match.opponent_1}`;
-                const test = ref(league?.value[matchKey] ? league?.value[matchKey]: []);
-                league.value[matchKey] = [newEntry, ...test.value];
-
+                const buffer = ref(league?.value[matchKey] ? league?.value[matchKey]: []);
+                league.value[matchKey] = [newEntry, ...buffer.value];
+                
                 if (league.value[matchKey].length > league.maxLength) {
                     league.value[matchKey].length = league.maxLength;
                 }
-
-                addToHistory(match.rate, name, matchKey, )
-            }
+                
+                addToHistory(match.rate, name, matchKey)
+            }    
         })
-      
+            
     } catch (error) {
         console.error(`Ошибка при обновлении ${name}:`, error);
     }

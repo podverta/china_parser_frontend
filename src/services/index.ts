@@ -1,25 +1,20 @@
 import {ref} from 'vue'
 
-export const colorHistory = ref()
+// export const colorHistory = ref()
 
-export const fetchColorHistory = async () => {
+export const fetchColorHistory = async (site: string, league: string, opponent_0: string, opponent_1: string) => {
 	try {
-	  const response = await fetch('https://example.com/api/color-history', {
+	  const response = await fetch(`http://10.10.10.34:8123/get-game/${site}/${league}/${opponent_0}/${opponent_1}`, {
 		method: 'GET',
 		headers: {
 		  'Content-Type': 'application/json',
 		},
 	  });
   
-	  if (!response.ok) {
-		throw new Error(`HTTP error! Status: ${response.status}`);
-	  }
-  
 	  const data = await response.json(); 
-	  colorHistory.value = data
-	  return data; 
+	  return data.games; 
 	} catch (error) {
 	  console.error('Error fetching color history:', error);
 	  throw error;
 	}
-  };
+};

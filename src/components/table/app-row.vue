@@ -1,4 +1,4 @@
-<template v-if="item?">
+<template v-if="item">
 	<div
 		class="table-row"
 		:class="{ gray: item?.site === 'fb.com' }"

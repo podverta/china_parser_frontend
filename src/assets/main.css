@@ -5,6 +5,7 @@
   width: fit-content;
   min-height: 100vh;
   font-weight: normal;
+  min-width: 100vw;
 }
 
 ::-webkit-scrollbar {

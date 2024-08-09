@@ -42,13 +42,6 @@ export interface League {
     content: LeagueData
 }
 
-interface OpponentData {
-    name: string
-    score: string
-    handicap_bet: string
-    total_bet: string
-}
-
 export interface LeagueStorage {
     [key: string]: {
       value: { [key: string]: League[] };

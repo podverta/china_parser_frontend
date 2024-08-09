@@ -2,10 +2,10 @@
     <div class="match-wrp">
         <div class="match-title">
             <div class="match-title--participants">
-                {{ opponents }}
+                {{ props.opponents }}
             </div>
             <div class="match-title--score">
-                {{ match[0].content.score_game }}
+                {{ props.match[0].content.score_game }}
             </div>
             <div class="match-title--counter">
                 <div
@@ -14,7 +14,7 @@
                     :key="'color' + idx"
                 >
                     <div :style="'background-color: ' + color"></div>
-                    {{ getColorHistory(name, opponents, color) }}
+                    {{ getColorHistory(props.name, props.opponents, color) }}
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
                 v-if="!collapse"
             >
                 <template
-                    v-for="(item, index) in match"
+                    v-for="(item, index) in props.match"
                     :key="'item' + index"
                 >
                     <app-row
@@ -36,22 +36,40 @@
 
             </div>
             <div v-else>
-                <div class="table">
-                    <div
-                        class="table-row--collapse"
-                        v-for="(color, idx) in 3"
+                <div
+                    class="table"
+                    v-if="colorHistory"
+                >
+                    <template
+                        v-for="(color, idx) in colorHistory"
                         :key="'color' + idx"
                     >
-                        <div class="table-row--item"></div>
-                        <div class="table-row--item"></div>
-                        <!-- :style="{ backgroundColor: color.color }" -->
-                        <div
-                            class="table-row--item"
-                            style="font-size: 14px;"
+                        <template
+                            v-for="(item, key) in color"
+                            :key="'item' + key"
                         >
-                            <!-- {{ time }} -->
-                        </div>
-                    </div>
+                            <div
+                                class="table-row--collapse"
+                                v-if="key !== 'server_time' && key !== 'total_point' && key !== 'handicap_point_0' && key != 'handicap_point_1' && getColor(item)"
+                            >
+                                <div class="table-row--item">{{ getKey(key as string, color) }}</div>
+                                <div
+                                    class="table-row--item"
+                                    :style="{ backgroundColor: getColor(item) }"
+                                >{{ item }}</div>
+
+                                <div
+                                    class="table-row--item"
+                                    style="font-size: 14px;"
+                                >
+                                    {{ color.server_time }}
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+                <div v-else>
+                    нет событий
                 </div>
             </div>
         </div>
@@ -61,20 +79,72 @@
 <script setup lang="ts">
 import appRow from '@/components/table/app-row.vue'
 import { useStore } from 'vuex'
-import { computed } from 'vue'
-const { match, opponents, name, collapse } = defineProps([
-    'match',
-    'opponents', 'collapse',
-    'name'
-])
+import { computed, ref, watch } from 'vue'
+import type { League, RateData } from '@/interfaces';
+import { fetchColorHistory } from '@/services';
+import { getColor } from '@/services/socketIo';
+
+interface PropsTable {
+    name: string,
+    opponents: string,
+    collapse: boolean,
+    match: League[]
+}
+const props = defineProps<PropsTable>()
 
 const colors = ['#FAFF00', '#FF8A00', '#FF0000', '#9E00FF']
+
+const opponent_0 = ref(props.match[0].content.opponent_0)
+const opponent_1 = ref(props.match[0].content.opponent_1)
+
+const colorHistory = ref<RateData[]>([])
+
+watch(() => props.collapse, async (newValue) => {
+    if (newValue) {
+        Promise.allSettled([
+            fetchColorHistory('fb.com', props.name, opponent_0.value, opponent_1.value),
+            fetchColorHistory('akty.com', props.name, opponent_0.value, opponent_1.value)
+        ])
+            .then(results => {
+                const [result1, result2] = results;
+
+                if (result1.status === 'fulfilled') {
+                    colorHistory.value = result1.value;
+                } else {
+                    console.error('Ошибка при запросе fb.com:', result1.reason);
+                }
+
+                if (result2.status === 'fulfilled') {
+                    colorHistory.value = [...result2.value, ...colorHistory.value];
+                } else {
+                    console.error('Ошибка при запросе akty.com:', result2.reason);
+                }
+
+                colorHistory.value.sort((a, b) => {
+                    return b.server_time.localeCompare(a.server_time);
+                });
+            })
+            .catch(error => {
+                console.error('Произошла ошибка при обработке запросов:', error);
+            });
+
+    } else {
+        colorHistory.value = []
+    }
+});
+
 
 const store = useStore()
 
 const getColorHistory = (league: string, key: string, color: string) => {
     return computed(() => store.getters['matchColorHistory/getColorHistory'](league, key, color));
 };
+const getKey = (key: string, item: RateData) => {
+    if (key === 'total_bet_0') return item.total_point + ' O'
+    if (key === 'total_bet_1') return item.total_point + ' U'
+    if (key === 'handicap_bet_0') return item.handicap_point_0
+    if (key === 'handicap_bet_1') return item.handicap_point_1
+}
 </script>
 
 
